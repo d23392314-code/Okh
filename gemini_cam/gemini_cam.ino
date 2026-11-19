@@ -294,7 +294,6 @@ static String htmlEsc(String s) {
 static void useMainFont() {
   u8g2.setFont(u8g2_font_unifont_t_symbols);
   u8g2.setFontMode(1);
-  u8g2.setFontPosTop();
 }
 
 static void wrapText(const String &t, std::vector<String> &out, int maxW) {
