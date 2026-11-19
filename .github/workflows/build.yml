@@ -1,0 +1,42 @@
+name: Build ESP32-S3 Gemini
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+env:
+  ARDUINO_LIBRARY_ENABLE_UNSAFE_INSTALL: "true"
+  ESP_INDEX: https://espressif.github.io/arduino-esp32/package_esp32_index.json
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: arduino/setup-arduino-cli@v2
+
+      - name: Install ESP32 core
+        run: |
+          arduino-cli core update-index --additional-urls "$ESP_INDEX"
+          arduino-cli core install esp32:esp32@3.2.0 --additional-urls "$ESP_INDEX"
+
+      - name: Install libraries
+        run: |
+          arduino-cli lib install "Adafruit GFX Library" "Adafruit BusIO" \
+            "Adafruit ST7735 and ST7789 Library" "U8g2_for_Adafruit_GFX" \
+            "JPEGDEC" "ArduinoJson"
+          arduino-cli lib install --git-url https://github.com/tanakamasayuki/EspUsbHost.git
+
+      - name: Compile
+        run: |
+          arduino-cli compile \
+            --fqbn "esp32:esp32:esp32s3:PSRAM=opi,FlashSize=8M,PartitionScheme=huge_app,USBMode=default,CDCOnBoot=default" \
+            --output-dir build \
+            gemini_cam
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: firmware-esp32s3
+          path: build/*.bin
